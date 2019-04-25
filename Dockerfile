@@ -1,4 +1,4 @@
-FROM debian:stretch
+FROM openjdk:8u212-jre-stretch
 MAINTAINER Getty Images "https://github.com/gettyimages"
 
 RUN apt-get update \
@@ -29,23 +29,20 @@ ENV PYTHONHASHSEED 0
 ENV PYTHONIOENCODING UTF-8
 ENV PIP_DISABLE_PIP_VERSION_CHECK 1
 
-# JAVA
-ARG JAVA_MAJOR_VERSION=12
-ARG JAVA_UPDATE_VERSION=0.1
-ARG JAVA_BUILD_NUMBER=12
-ENV JAVA_HOME /usr/jdk-${JAVA_MAJOR_VERSION}.${JAVA_UPDATE_VERSION}
-
-ENV PATH $PATH:$JAVA_HOME/bin
-RUN curl -sL --retry 3 --insecure \
-  --header "Cookie: oraclelicense=accept-securebackup-cookie;" \
-  "http://download.oracle.com/otn-pub/java/jdk/${JAVA_MAJOR_VERSION}.${JAVA_UPDATE_VERSION}+${JAVA_BUILD_NUMBER}/69cfe15208a647278a19ef0990eea691/jdk-${JAVA_MAJOR_VERSION}.${JAVA_UPDATE_VERSION}_linux-x64_bin.tar.gz" \
+# SCALA
+ENV SCALA_HOME /usr/local/scala
+ENV PATH $PATH:$SCALA_HOME/bin
+ENV SCALA_VERSION=2.11.8
+ENV SCALA_BINARY_ARCHIVE_NAME=scala-${SCALA_VERSION}
+RUN curl -sL --retry 3 \
+  "http://downloads.lightbend.com/scala/${SCALA_VERSION}/${SCALA_BINARY_ARCHIVE_NAME}.tgz" \
   | gunzip \
   | tar x -C /usr/ \
-  && ln -s $JAVA_HOME /usr/java \
-  && rm -rf $JAVA_HOME/man
+ && mv /usr/$SCALA_BINARY_ARCHIVE_NAME $SCALA_HOME \
+ && chown -R root:root $SCALA_HOME
 
 # HADOOP
-ENV HADOOP_VERSION 3.0.0
+ENV HADOOP_VERSION 2.6.0
 ENV HADOOP_HOME /usr/hadoop-$HADOOP_VERSION
 ENV HADOOP_CONF_DIR=$HADOOP_HOME/etc/hadoop
 ENV PATH $PATH:$HADOOP_HOME/bin
@@ -57,7 +54,7 @@ RUN curl -sL --retry 3 \
  && chown -R root:root $HADOOP_HOME
 
 # SPARK
-ENV SPARK_VERSION 2.4.1
+ENV SPARK_VERSION 2.0.0
 ENV SPARK_PACKAGE spark-${SPARK_VERSION}-bin-without-hadoop
 ENV SPARK_HOME /usr/spark-${SPARK_VERSION}
 ENV SPARK_DIST_CLASSPATH="$HADOOP_HOME/etc/hadoop/*:$HADOOP_HOME/share/hadoop/common/lib/*:$HADOOP_HOME/share/hadoop/common/*:$HADOOP_HOME/share/hadoop/hdfs/*:$HADOOP_HOME/share/hadoop/hdfs/lib/*:$HADOOP_HOME/share/hadoop/hdfs/*:$HADOOP_HOME/share/hadoop/yarn/lib/*:$HADOOP_HOME/share/hadoop/yarn/*:$HADOOP_HOME/share/hadoop/mapreduce/lib/*:$HADOOP_HOME/share/hadoop/mapreduce/*:$HADOOP_HOME/share/hadoop/tools/lib/*"

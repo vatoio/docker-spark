@@ -1,7 +1,7 @@
 version: "2.2"
 services:
   master:
-    image: gettyimages/spark
+    image: 9652c842a244
     command: bin/spark-class org.apache.spark.deploy.master.Master -h master
     hostname: master
     environment:
@@ -26,18 +26,19 @@ services:
       - ./data:/tmp/data
 
   worker:
-    image: gettyimages/spark
+    image: 9652c842a244
     command: bin/spark-class org.apache.spark.deploy.worker.Worker spark://master:7077
     hostname: worker
     environment:
       SPARK_CONF_DIR: /conf
-      SPARK_WORKER_CORES: 2
-      SPARK_WORKER_MEMORY: 1g
+      SPARK_WORKER_CORES: 4
+      SPARK_WORKER_MEMORY: 3g
       SPARK_WORKER_PORT: 8881
       SPARK_WORKER_WEBUI_PORT: 8081
       SPARK_PUBLIC_DNS: localhost
     links:
       - master
+      - cloudsql-proxy
     expose:
       - 7012
       - 7013
@@ -49,3 +50,4 @@ services:
     volumes:
       - ./conf/worker:/conf
       - ./data:/tmp/data
+      
